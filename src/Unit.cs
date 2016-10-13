@@ -93,16 +93,16 @@ namespace Decent.Physics.Units
             }
         }
 
+        // Fundamental units
         public static readonly Unit None = new Unit();
         public static readonly Unit m = new Unit("m");
         public static readonly Unit g = new Unit("g");
-        public static readonly Unit kg = new Unit("k", "g");
         public static readonly Unit K = new Unit("K");
         public static readonly Unit s = new Unit("s");
         public static readonly Unit A = new Unit("A");
         public static readonly Unit mol = new Unit("mol");
         public static readonly Unit cd = new Unit("cd");
-
+        // Derived units
         public static readonly Unit Hz = s ^ -1;
         public static readonly Unit N = kg * m / s ^ 2;
         public static readonly Unit Pa = N / m ^ 2;
@@ -121,5 +121,10 @@ namespace Decent.Physics.Units
         public static readonly Unit Gy = J / kg;
         public static readonly Unit Sv = Gy;
         public static readonly Unit katal = mol / s;
+        // Some common prefixed derived units
+        public static readonly Unit kg = new Unit("k", "g");
+        public static readonly Unit km = new Unit("k", "m");
+        public static readonly Unit cm = new Unit("c", "m");
+        public static readonly Unit mm = new Unit("m", "m");
     }
 }
