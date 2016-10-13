@@ -14,7 +14,7 @@ namespace Decent.Physics.Helpers
         {
             if (c == '-') return '⁻';
             Debug.Assert(c >= '0' && c <= '9');
-            return ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹'][c - '0'];
+            return new char[] { '⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹' }[c - '0'];
         }
     }
 }

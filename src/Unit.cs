@@ -36,10 +36,21 @@ namespace Decent.Physics
 
         public static PhysicalValue operator *(decimal value, Unit unit)
         {
-            return new PhysicalValue(value, unit);
+            return new PhysicalValue((double)value, unit);
+        }
+        public static PhysicalValue operator *(double val1, Unit val2)
+        {
+            return new PhysicalValue(val1, val2);
+        }
+        public static PhysicalValue operator *(int val1, Unit val2)
+        {
+            return new PhysicalValue(val1, val2);
         }
 
         public static Unit operator /(Unit first, Unit second)
+        {
+        }
+        public static Unit operator /(double first, Unit second)
         {
         }
 
@@ -112,10 +123,11 @@ namespace Decent.Physics
         public static readonly Unit A = new Unit("A");
         public static readonly Unit mol = new Unit("mol");
         public static readonly Unit cd = new Unit("cd");
+
         // Derived units
         public static readonly Unit Hz = s ^ -1;
-        public static readonly Unit N = kg * m / s ^ 2;
-        public static readonly Unit Pa = N / m ^ 2;
+        public static readonly Unit N = kg * m / (s ^ 2);
+        public static readonly Unit Pa = N / (m ^ 2);
         public static readonly Unit J = N * m;
         public static readonly Unit W = J / s;
         public static readonly Unit C = s * A;
@@ -124,20 +136,36 @@ namespace Decent.Physics
         public static readonly Unit Ω = V / A;
         public static readonly Unit S = A / V;
         public static readonly Unit Wb = V * s;
-        public static readonly Unit T = Wb / m ^ 2;
+        public static readonly Unit T = Wb / (m ^ 2);
         public static readonly Unit H = Wb / A;
-        public static readonly Unit lx = cd / m ^ 2;
+        public static readonly Unit lx = cd / (m ^ 2);
         public static readonly Unit Bq = Hz;
         public static readonly Unit Gy = J / kg;
         public static readonly Unit Sv = Gy;
         public static readonly Unit katal = mol / s;
+
         // Some common prefixed derived units
         public static readonly Unit kg = new Unit("k", "g");
         public static readonly Unit km = new Unit("k", "m");
         public static readonly Unit cm = new Unit("c", "m");
+        public static readonly Unit dm = new Unit("d", "m");
         public static readonly Unit mm = new Unit("m", "m");
         public static readonly Unit tonne = new Unit("M", "g");
+        public static readonly Unit l = dm ^ 3;
         public static readonly Unit a = new Unit("da", "m") ^ 2;
         public static readonly Unit ha = new Unit("h", "m") ^ 2;
+
+        // Not really constants, not units because there's a value:
+        public static readonly PhysicalValue minute = 60 * s;
+        public static readonly PhysicalValue hour = 60 * minute;
+        public static readonly PhysicalValue day = 24 * hour;
+        public static readonly PhysicalValue week = 7 * day;
+        public static readonly PhysicalValue au = 1.496E11 * m;
+        public static readonly PhysicalValue pc = 3.0857E16 * m;
+        public static readonly PhysicalValue ly = 9.4607E15 * m;
+        public static readonly PhysicalValue eV = 1.6021766208E-19 * J;
+        public static readonly PhysicalValue u = 1.660539040E-27 * kg;
+        public static readonly PhysicalValue bar = 100000 * Pa;
+        public static readonly PhysicalValue Å = 1E-10 * m;
     }
 }
