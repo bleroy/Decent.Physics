@@ -97,7 +97,29 @@ namespace Decent.Physics.Units
         public static readonly Unit m = new Unit("m");
         public static readonly Unit g = new Unit("g");
         public static readonly Unit kg = new Unit("k", "g");
+        public static readonly Unit K = new Unit("K");
         public static readonly Unit s = new Unit("s");
         public static readonly Unit A = new Unit("A");
+        public static readonly Unit mol = new Unit("mol");
+        public static readonly Unit cd = new Unit("cd");
+
+        public static readonly Unit Hz = s ^ -1;
+        public static readonly Unit N = kg * m / s ^ 2;
+        public static readonly Unit Pa = N / m ^ 2;
+        public static readonly Unit J = N * m;
+        public static readonly Unit W = J / s;
+        public static readonly Unit C = s * A;
+        public static readonly Unit V = W / A;
+        public static readonly Unit F = C / V;
+        public static readonly Unit Ω = V / A;
+        public static readonly Unit S = A / V;
+        public static readonly Unit Wb = V * s;
+        public static readonly Unit T = Wb / m ^ 2;
+        public static readonly Unit H = Wb / A;
+        public static readonly Unit lx = cd / m ^ 2;
+        public static readonly Unit Bq = Hz;
+        public static readonly Unit Gy = J / kg;
+        public static readonly Unit Sv = Gy;
+        public static readonly Unit katal = mol / s;
     }
 }
