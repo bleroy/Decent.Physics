@@ -34,6 +34,11 @@ namespace Decent.Physics.Units
         {
         }
 
+        public static PhysicalValue operator *(decimal value, Unit unit)
+        {
+            return new PhysicalValue(value, unit);
+        }
+
         public static Unit operator /(Unit first, Unit second)
         {
         }
@@ -41,6 +46,11 @@ namespace Decent.Physics.Units
         public static Unit operator ^(Unit first, int second)
         {
 
+        }
+
+        public static implicit operator PhysicalValue(Unit unit)
+        {
+            return new PhysicalValue(1, unit);
         }
 
         public override bool Equals(object obj)
