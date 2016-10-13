@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Decent.Physics.Units
+namespace Decent.Physics
 {
     /// <summary>
     /// Represents a unit, that can be a base unit such as m, kg, s, A, or a derived unit such as m·s⁻², kg·m⁻¹·s⁻², etc.
@@ -136,5 +136,8 @@ namespace Decent.Physics.Units
         public static readonly Unit km = new Unit("k", "m");
         public static readonly Unit cm = new Unit("c", "m");
         public static readonly Unit mm = new Unit("m", "m");
+        public static readonly Unit tonne = new Unit("M", "g");
+        public static readonly Unit a = new Unit("da", "m") ^ 2;
+        public static readonly Unit ha = new Unit("h", "m") ^ 2;
     }
 }
