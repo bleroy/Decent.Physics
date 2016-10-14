@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Decent.Physics
 {
@@ -34,17 +35,17 @@ namespace Decent.Physics
         {
         }
 
-        public static PhysicalValue operator *(decimal value, Unit unit)
+        public static Quantity operator *(decimal value, Unit unit)
         {
-            return new PhysicalValue((double)value, unit);
+            return new Quantity((double)value, unit);
         }
-        public static PhysicalValue operator *(double val1, Unit val2)
+        public static Quantity operator *(double val1, Unit val2)
         {
-            return new PhysicalValue(val1, val2);
+            return new Quantity(val1, val2);
         }
-        public static PhysicalValue operator *(int val1, Unit val2)
+        public static Quantity operator *(int val1, Unit val2)
         {
-            return new PhysicalValue(val1, val2);
+            return new Quantity(val1, val2);
         }
 
         public static Unit operator /(Unit first, Unit second)
@@ -59,9 +60,9 @@ namespace Decent.Physics
 
         }
 
-        public static implicit operator PhysicalValue(Unit unit)
+        public static implicit operator Quantity(Unit unit)
         {
-            return new PhysicalValue(1, unit);
+            return new Quantity(1, unit);
         }
 
         public override bool Equals(object obj)
@@ -156,16 +157,16 @@ namespace Decent.Physics
         public static readonly Unit ha = new Unit("h", "m") ^ 2;
 
         // Not really constants, not units because there's a value:
-        public static readonly PhysicalValue minute = 60 * s;
-        public static readonly PhysicalValue hour = 60 * minute;
-        public static readonly PhysicalValue day = 24 * hour;
-        public static readonly PhysicalValue week = 7 * day;
-        public static readonly PhysicalValue au = 1.496E11 * m;
-        public static readonly PhysicalValue pc = 3.0857E16 * m;
-        public static readonly PhysicalValue ly = 9.4607E15 * m;
-        public static readonly PhysicalValue eV = 1.6021766208E-19 * J;
-        public static readonly PhysicalValue u = 1.660539040E-27 * kg;
-        public static readonly PhysicalValue bar = 100000 * Pa;
-        public static readonly PhysicalValue Å = 1E-10 * m;
+        public static readonly Quantity minute = 60 * s;
+        public static readonly Quantity hour = 60 * minute;
+        public static readonly Quantity day = 24 * hour;
+        public static readonly Quantity week = 7 * day;
+        public static readonly Quantity au = 1.496E11 * m;
+        public static readonly Quantity pc = 3.0857E16 * m;
+        public static readonly Quantity ly = 9.4607E15 * m;
+        public static readonly Quantity eV = 1.6021766208E-19 * J;
+        public static readonly Quantity u = 1.660539040E-27 * kg;
+        public static readonly Quantity bar = 100000 * Pa;
+        public static readonly Quantity Å = 1E-10 * m;
     }
 }
