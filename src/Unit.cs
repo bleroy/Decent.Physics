@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Decent.Physics
@@ -14,19 +15,19 @@ namespace Decent.Physics
             _units = new List<BaseUnit>();
         }
 
-        public Unit(string name, int power = 1)
+        public Unit(string symbol, int power = 1)
         {
             _units = new List<BaseUnit>
             {
-                new BaseUnit(name, power)
+                new BaseUnit(symbol, power)
             };
         }
 
-        public Unit(string prefix, string name, int power = 1)
+        public Unit(string prefix, string symbol, int power = 1)
         {
             _units = new List<BaseUnit>
             {
-                new BaseUnit(prefix, name, power)
+                new BaseUnit(prefix, symbol, power)
             };
         }
 
@@ -116,23 +117,6 @@ namespace Decent.Physics
             return first * inverseSecond;
         }
 
-        private Unit Invert()
-        {
-            // Dividing two units is the same as multiplying the first by the inverse of the second.
-            var inverseSecond = new Unit();
-            inverseSecond._factor = 1 / _factor;
-            inverseSecond._units = new List<BaseUnit>(_units.Count);
-            for (var i = 0; i < _units.Count; i++)
-            {
-                inverseSecond._units[i] = new BaseUnit(
-                    _units[i].Prefix,
-                    _units[i].Symbol,
-                    -_units[i].Power);
-            }
-
-            return inverseSecond;
-        }
-
         public static Unit operator /(double value, Unit unit)
         {
             var inverseSecond = unit.Invert();
@@ -161,6 +145,23 @@ namespace Decent.Physics
             return new Quantity(1, unit);
         }
 
+        internal Unit Invert()
+        {
+            // Dividing two units is the same as multiplying the first by the inverse of the second.
+            var inverseSecond = new Unit();
+            inverseSecond._factor = 1 / _factor;
+            inverseSecond._units = new List<BaseUnit>(_units.Count);
+            for (var i = 0; i < _units.Count; i++)
+            {
+                inverseSecond._units[i] = new BaseUnit(
+                    _units[i].Prefix,
+                    _units[i].Symbol,
+                    -_units[i].Power);
+            }
+
+            return inverseSecond;
+        }
+
         private BaseUnit FindBaseUnit(string symbol)
         {
             foreach(var baseUnit in _units)
@@ -178,23 +179,66 @@ namespace Decent.Physics
             return Equals(unit);
         }
 
+        internal IList<BaseUnit> SortBaseUnits()
+        {
+            var result = new List<BaseUnit>(_units.Count);
+            for(var i = 0; i < _units.Count; i++)
+            {
+                result[i] = _units[i].Clone();
+            }
+            result.Sort((baseUnit1, baseUnit2)
+                => string.Compare(baseUnit1.Symbol, baseUnit2.Symbol, StringComparison.OrdinalIgnoreCase));
+            return result;
+        }
+
         public bool Equals(Unit unit)
         {
             if (_units.Count != unit._units.Count) return false;
             if (_factor != unit._factor) return false;
+            var sorted1 = SortBaseUnits();
+            var sorted2 = unit.SortBaseUnits();
             for(var i = 0; i < _units.Count; i++)
             {
-                if (!_units[i].Equals(unit._units[i])) return false;
+                if (!sorted1[i].Equals(sorted2[i])) return false;
             }
             return true;
         }
 
+        internal Unit ExpandToFundamentalUnits()
+        {
+            if (_units.Count == 1)
+            {
+                return this;
+            }
+            var accumulator = new Unit();
+            accumulator._factor = _factor;
+            foreach(var baseUnit in _units)
+            {
+                var unit = Units[baseUnit.Symbol].ExpandToFundamentalUnits();
+                unit._factor = Prefix.Prefixes[baseUnit.Prefix].Factor;
+                accumulator *= unit;
+            }
+            return accumulator;
+        }
+
         public bool IsSameDimensionAs(Unit unit)
         {
-            if (_units.Count != unit._units.Count) return false;
-            for (var i = 0; i < _units.Count; i++)
+            // This needs to work on fully expanded fundamental units.
+            var thisExpanded = ExpandToFundamentalUnits();
+            var thatExpanded = unit.ExpandToFundamentalUnits();
+            if (thisExpanded._units.Count != thatExpanded._units.Count) return false;
+            var sorted1 = thisExpanded.SortBaseUnits();
+            var sorted2 = thatExpanded.SortBaseUnits();
+            return IsSameExpandedAndSortedDimensionsAs(sorted1, sorted2);
+        }
+
+        internal static bool IsSameExpandedAndSortedDimensionsAs(IList<BaseUnit> sorted1, IList<BaseUnit> sorted2)
+        {
+            if (sorted1.Count != sorted2.Count) return false;
+            for (var i = 0; i < sorted1.Count; i++)
             {
-                if (_units[i].Symbol != unit._units[i].Symbol || _units[i].Power != unit._units[i].Power) return false;
+                if (sorted1[i].Symbol != sorted2[i].Symbol
+                    || sorted1[i].Power != sorted2[i].Power) return false;
             }
             return true;
         }
@@ -212,13 +256,160 @@ namespace Decent.Physics
 
         public override int GetHashCode()
         {
-            return CombineHashCodes(_units
+            return CombineHashCodes(SortBaseUnits()
                 .Select(baseUnit => baseUnit.GetHashCode())
                 .Append(_factor.GetHashCode()));
         }
 
         public static Unit Parse(string unit)
         {
+            return Parse(unit, CultureInfo.CurrentCulture);
+        }
+
+        public static Unit Parse(string unit, IFormatProvider formatProvider)
+        {
+            Unit result;
+            ParseInternal(unit, formatProvider, out result);
+            return result;
+        }
+
+        public static bool TryParse(string unit, out Unit result)
+        {
+            return TryParse(unit, CultureInfo.CurrentCulture, out result);
+        }
+
+        public static bool TryParse(string unit, IFormatProvider formatProvider, out Unit result)
+        {
+            return ParseInternal(unit, formatProvider, out result, false);
+        }
+
+        internal static bool ParseInternal(string unit, IFormatProvider formatProvider, out Unit result, bool throwOnError = true)
+        {
+            var tempResult = new Unit();
+            var start = 0;
+            string symbol = null;
+            var parsingSymbol = true;
+            for (var i = 0; i < unit.Length; i++)
+            {
+                var c = unit[i];
+                if (parsingSymbol && c == '^')
+                {
+                    symbol = unit.Substring(start, i - start);
+                    start = i + 1;
+                    parsingSymbol = false;
+                }
+                else if (c == '*' || c == '/' || i == unit.Length - 1)
+                {
+                    // End of base unit section
+                    // Symbol should exist, otherwise that's an error.
+                    if (string.IsNullOrEmpty(symbol))
+                    {
+                        if (throwOnError)
+                        {
+                            throw new FormatException($"Missing unit symbol in '{unit}' at index {i}.");
+                        }
+                        else
+                        {
+                            result = null;
+                            return false;
+                        }
+                    }
+                    int power;
+                    if (!parsingSymbol)
+                    {
+                        var powerString = unit.Substring(start, i - start + (i == unit.Length - 1 ? 1 : 0));
+                        // We were parsing a power
+                        if (!int.TryParse(powerString, NumberStyles.Integer, formatProvider, out power))
+                        {
+                            if (throwOnError)
+                            {
+                                throw new FormatException($"Can't parse power '{powerString}' in '{unit}'.");
+                            }
+                            else
+                            {
+                                result = null;
+                                return false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        power = 1;
+                    }
+                    // Find what unit this is
+                    if (Units.ContainsKey(symbol))
+                    {
+                        // That's a known unit symbol, no need to look for a prefix.
+                        tempResult._units.Add(new BaseUnit(symbol, power));
+                    }
+                    else
+                    {
+                        // We need to look for a prefix.
+                        var inError = false;
+                        // All prefixes are just one character, except for "da".
+                        if (symbol[0] == 'd')
+                        {
+                            symbol = symbol.Substring(1);
+                            if (Units.ContainsKey(symbol))
+                            {
+                                tempResult._units.Add(new BaseUnit("d", symbol, power));
+                            }
+                            else
+                            {
+                                if (symbol[0] == 'a')
+                                {
+                                    // This is da*.
+                                    symbol = symbol.Substring(1);
+                                    if (Units.ContainsKey(symbol))
+                                    {
+                                        tempResult._units.Add(new BaseUnit("da", symbol, power));
+                                    }
+                                    else
+                                    {
+                                        inError = true;
+                                    }
+                                }
+                                else
+                                {
+                                    inError = true;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var prefix = symbol[0].ToString();
+                            if (Prefix.Prefixes.ContainsKey(prefix))
+                            {
+                                symbol = symbol.Substring(1);
+                                if (Units.ContainsKey(symbol))
+                                {
+                                    tempResult._units.Add(new BaseUnit(prefix, symbol, power));
+                                }
+                                else
+                                {
+                                    inError = true;
+                                }
+                            }
+                        }
+                        if (inError)
+                        {
+                            if (throwOnError)
+                            {
+                                throw new FormatException($"Can't parse unit '{symbol}' in '{unit}'.");
+                            }
+                            else
+                            {
+                                result = null;
+                                return false;
+                            }
+                        }
+                    }
+                    parsingSymbol = true;
+                    symbol = null;
+                }
+            }
+            result = tempResult;
+            return true;
         }
 
         public override string ToString()
@@ -226,7 +417,7 @@ namespace Decent.Physics
             return string.Join("·", _units.Select(baseUnit => baseUnit.ToString()));
         }
 
-        private class BaseUnit
+        internal class BaseUnit
         {
             public BaseUnit(string prefix, string symbol, int power = 1)
             {
@@ -235,7 +426,7 @@ namespace Decent.Physics
                 Power = power;
             }
 
-            public BaseUnit(string name, int power = 1) : this("", name, power) { }
+            public BaseUnit(string symbol, int power = 1) : this("", symbol, power) { }
 
             public string Prefix { get; private set; }
             public string Symbol { get; private set; }
@@ -314,7 +505,6 @@ namespace Decent.Physics
         // Global registry of units
         public static readonly IDictionary<string, Unit> Units = new Dictionary<string, Unit>
         {
-            {"", None },
             {"m", m },
             {"kg", kg },
             {"K", K },
