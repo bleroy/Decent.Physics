@@ -6,6 +6,7 @@ namespace Decent.Physics
 {
     public class Quantity
     {
+        // TODO: normalize storage to canonical units so we can optimize operations.
         public Quantity(double value, Unit unit) : this(value, unit, value, value) { }
         public Quantity(double value, Unit unit, double plusOrMinus) : this(value, unit, value - plusOrMinus, value + plusOrMinus) { }
         public Quantity(double value, Unit unit, double lowerBound, double higherBound)
@@ -15,6 +16,7 @@ namespace Decent.Physics
             LowerBound = lowerBound;
             HigherBound = higherBound;
             FixBounds();
+            // TODO: warn in debug mode that a more concrete type could be used
         }
 
         public double Value { get; protected set; }
@@ -120,6 +122,27 @@ namespace Decent.Physics
         public static bool operator !=(Quantity a, Quantity b)
         {
             return !(a == b);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null) return false;
+            var unit = obj as Unit;
+            if ((object)unit == null) return false;
+            return Equals(unit);
+        }
+
+        public bool Equals(Quantity quantity)
+        {
+            if (!Unit.IsSameDimensionAs(quantity.Unit)) return false;
+            var converted = ConvertTo(quantity.Unit);
+            if (converted.Value != quantity.Value) return false;
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            return Helpers.CombineHashCodes(Value, Unit);
         }
 
         private void FixBounds()

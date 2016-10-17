@@ -10,6 +10,7 @@ namespace Decent.Physics
     /// </summary>
     public class Unit
     {
+        // TODO: normalize units at creation, and maintain a registry to avoid duplication.
         public Unit()
         {
             _units = new List<BaseUnit>();
@@ -183,14 +184,6 @@ namespace Decent.Physics
             return null;
         }
 
-        public override bool Equals(object obj)
-        {
-            if (obj == null) return false;
-            var unit = obj as Unit;
-            if ((object)unit == null) return false;
-            return Equals(unit);
-        }
-
         internal IList<BaseUnit> SortBaseUnits()
         {
             var result = new List<BaseUnit>(_units.Count);
@@ -201,6 +194,14 @@ namespace Decent.Physics
             result.Sort((baseUnit1, baseUnit2)
                 => string.Compare(baseUnit1.Symbol, baseUnit2.Symbol, StringComparison.OrdinalIgnoreCase));
             return result;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null) return false;
+            var unit = obj as Unit;
+            if ((object)unit == null) return false;
+            return Equals(unit);
         }
 
         public bool Equals(Unit unit)
@@ -214,6 +215,13 @@ namespace Decent.Physics
                 if (!sorted1[i].Equals(sorted2[i])) return false;
             }
             return true;
+        }
+
+        public override int GetHashCode()
+        {
+            return Helpers.CombineHashCodes(SortBaseUnits()
+                .Select(baseUnit => baseUnit.GetHashCode())
+                .Append(_factor.GetHashCode()));
         }
 
         internal Unit ExpandToFundamentalUnits()
@@ -253,24 +261,6 @@ namespace Decent.Physics
                     || sorted1[i].Power != sorted2[i].Power) return false;
             }
             return true;
-        }
-
-        private static int CombineHashCodes(IEnumerable<int> hashCodes)
-        {
-            int hash = 5381;
-
-            foreach (var hashCode in hashCodes)
-            {
-                hash = ((hash << 5) + hash) ^ hashCode;
-            }
-            return hash;
-        }
-
-        public override int GetHashCode()
-        {
-            return CombineHashCodes(SortBaseUnits()
-                .Select(baseUnit => baseUnit.GetHashCode())
-                .Append(_factor.GetHashCode()));
         }
 
         public static Unit Parse(string unit)
@@ -456,7 +446,7 @@ namespace Decent.Physics
 
             public override string ToString()
             {
-                return Prefix + Symbol + Helpers.Power.Format(Power);
+                return Prefix + Symbol + Helpers.FormatPower(Power);
             }
         }
 
