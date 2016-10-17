@@ -110,6 +110,18 @@ namespace Decent.Physics
                 -value.LowerBound);
         }
 
+        public static bool operator ==(Quantity val1, Quantity val2)
+        {
+            if (ReferenceEquals(val1, val2)) return true;
+            if ((object)val1 == null) return false;
+            return val1.Equals(val2);
+        }
+
+        public static bool operator !=(Quantity a, Quantity b)
+        {
+            return !(a == b);
+        }
+
         private void FixBounds()
         {
             if (LowerBound > HigherBound)

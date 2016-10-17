@@ -140,6 +140,18 @@ namespace Decent.Physics
             return result;
         }
 
+        public static bool operator ==(Unit val1, Unit val2)
+        {
+            if (ReferenceEquals(val1, val2)) return true;
+            if ((object)val1 == null) return false;
+            return val1.Equals(val2);
+        }
+
+        public static bool operator !=(Unit a, Unit b)
+        {
+            return !(a == b);
+        }
+
         public static implicit operator Quantity(Unit unit)
         {
             return new Quantity(1, unit);
