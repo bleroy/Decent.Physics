@@ -17,10 +17,10 @@ namespace Decent.Physics
             FixBounds();
         }
 
-        public double Value { get; private set; }
-        public Unit Unit { get; private set; }
-        public double LowerBound { get; private set; }
-        public double HigherBound { get; private set; }
+        public double Value { get; protected set; }
+        public Unit Unit { get; protected set; }
+        public double LowerBound { get; protected set; }
+        public double HigherBound { get; protected set; }
 
         public static Quantity operator *(Quantity val1, Quantity val2)
         {
