@@ -7,6 +7,7 @@ namespace Decent.Physics
     public class Quantity
     {
         // TODO: normalize storage to canonical units so we can optimize operations.
+        // TODO: implement comparison operators.
         public Quantity(double value, Unit unit) : this(value, unit, value, value) { }
         public Quantity(double value, Unit unit, double plusOrMinus) : this(value, unit, value - plusOrMinus, value + plusOrMinus) { }
         public Quantity(double value, Unit unit, double lowerBound, double higherBound)
